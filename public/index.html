@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票行情数据展示</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .positive { color: #dc3545; font-weight: bold; }
+        .negative { color: #198754; font-weight: bold; }
+        .loading { opacity: 0.6; }
+        .field-help {
+            cursor: help;
+            color: #6c757d;
+            margin-left: 5px;
+        }
+        .last-update {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-3">
+                    <i class="bi bi-graph-up"></i>
+                    A股实时行情数据
+                </h1>
+
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> 数据说明</h6>
+                    <p class="mb-0">本页面展示A股市场实时行情数据，数据通过AKShare接口获取，每30秒自动更新。</p >
+                </div>
+
+                <!-- 控制面板 -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <button id="refresh-btn" class="btn btn-primary">
+                                    <i class="bi bi-arrow-clockwise"></i> 刷新数据
+                                </button>
+                                <span id="last-update" class="last-update ms-3"></span>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input" type="checkbox" id="auto-refresh" checked>
+                                    <label class="form-check-label" for="auto-refresh">自动刷新 (30秒)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-table"></i>
+                            股票数据
+                            <span id="data-count" class="badge bg-secondary ms-2">0</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-spinner" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                            <p class="mt-2">数据加载中...</p >
+                        </div>
+
+                        <div id="error-alert" class="alert alert-danger d-none" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span id="error-message"></span>
+                        </div>
+
+                        <div id="data-container" class="table-responsive d-none">
+                            <table class="table table-striped table-hover">
+                                <thead id="table-header">
+                                    <tr>
+                                        <!-- 表头将通过JavaScript动态生成 -->
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body">
+                                    <!-- 数据将通过JavaScript动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let autoRefreshInterval;
+        const API_URL = '/api/stock';  // 使用相对路径
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupAutoRefresh();
+
+            // 绑定刷新按钮事件
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadData();
+            });
+
+            // 绑定自动刷新开关事件
+            document.getElementById('auto-refresh').addEventListener('change', function() {
+                if (this.checked) {
+                    setupAutoRefresh();
+                } else {
+                    clearAutoRefresh();
+                }
+            });
+        });
+
+        // 加载数据
+        function loadData() {
+            const spinner = docum
