@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/*.py": {
-      "runtime": "pytho3.8"
+      "runtime": "pytho@3.10"
     }
   },
   "routes": [
